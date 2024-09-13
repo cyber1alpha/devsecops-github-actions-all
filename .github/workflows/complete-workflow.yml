@@ -68,6 +68,7 @@ jobs:
 
   zap_scan:
     name: Run DAST scan on the web application
+    needs: build
     permissions: write-all
     runs-on: ubuntu-latest
     steps:
