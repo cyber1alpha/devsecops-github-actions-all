@@ -23,9 +23,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   semgrep:
-    name: SAST [Semgrep Scan]
     needs: build
     runs-on: ubuntu-latest
+    name: SAST [Semgrep Scan]
     steps:
       - uses: actions/checkout@v3
       - name: Run Semgrep
@@ -38,9 +38,9 @@ jobs:
         if: always()
 
   oast:
-    name: SCA [Scan with Safety]
-    needs: build
+    needs: semgrep
     runs-on: ubuntu-20.04
+    name: SCA [Scan with Safety]
     steps:
       - uses: actions/checkout@v3
       - name: Run Safety
@@ -53,9 +53,9 @@ jobs:
         if: always()
 
   bundler:
-    name: SCA [Bundler Audit]
-    needs: build
+    needs: oast
     runs-on: ubuntu-20.04
+    name: SCA [Bundler Audit]
     steps:
       - uses: actions/checkout@v3
       - run: docker run --rm -v $(pwd):/src -w /src hysnsec/bundle-audit check --format json --output bundle-audit-output.json
@@ -67,10 +67,10 @@ jobs:
         if: always()
 
   zap_scan:
-    name: DAST [OWASP ZAP]
-    needs: build
-    permissions: write-all
+    needs: bundler
     runs-on: ubuntu-latest
+    name: DAST [OWASP ZAP]
+    permissions: write-all
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -89,9 +89,9 @@ jobs:
             zap_report.json
 
   IAC:
-    name: IAC [Terraform Security Scan]
-    needs: build
+    needs: zap_scan
     runs-on: ubuntu-20.04
+    name: IAC [Terraform Security Scan]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
