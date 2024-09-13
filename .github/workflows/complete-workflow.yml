@@ -67,7 +67,7 @@ jobs:
         if: always()
 
   zap_scan:
-    needs: bundler
+    needs: IAC
     runs-on: ubuntu-latest
     name: DAST [OWASP ZAP]
     permissions: write-all
