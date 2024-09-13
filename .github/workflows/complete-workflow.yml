@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    name: Build and run unit tests
+    name: Build and Compile the code
     steps:
       - uses: actions/checkout@v3
       - name: Set up JDK 17
@@ -23,7 +23,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   semgrep:
-    name: Run Semgrep scan
+    name: SAST [Semgrep Scan]
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -38,7 +38,7 @@ jobs:
         if: always()
 
   oast:
-    name: Run SCA scan with Safety
+    name: SCA [scan with Safety]
     needs: build
     runs-on: ubuntu-20.04
     steps:
@@ -53,7 +53,7 @@ jobs:
         if: always()
 
   bundler-audit:
-    name: Run Bundler Audit
+    name: SCA [Bundler Audit]
     needs: build
     runs-on: ubuntu-20.04
     steps:
@@ -67,7 +67,7 @@ jobs:
         if: always()
 
   zap_scan:
-    name: Run DAST scan on the web application
+    name: DAST [OWASP ZAP]
     needs: build
     permissions: write-all
     runs-on: ubuntu-latest
@@ -88,7 +88,8 @@ jobs:
             zap_report.html
             zap_report.json
 
-  tfsec:
+  IAC:
+    name: IAC 
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
