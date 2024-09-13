@@ -37,23 +37,17 @@ jobs:
       continue-on-error: true
       if: always()
       
-  odc-backend:
+  oast:
     runs-on: ubuntu-20.04
-    name: SCA
+    needs: test
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-      - name: Depcheck
-        uses: dependency-check/Dependency-Check_Action@main
-        id: Depcheck
-        with:
-          project: 'webgoat'
-          path: '.'
-          format: 'JSON'
+      - run: docker run --rm -v $(pwd):/src hysnsec/safety check -r requirements.txt --json > oast-results.json
+        continue-on-error: true             # allow the build to fail, similar to "allow_failure: true" in GitLab
 
-      - name: Upload Test results
-        uses: actions/upload-artifact@master
+      - uses: actions/upload-artifact@v2
         with:
-           name: Depcheck report
-           path: ${{github.workspace}}/reports
+          name: Safety
+          path: oast-results.json
+        if: always() 
