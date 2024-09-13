@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    name: Build and Compile the code
+    name: Build and Compile the Code
     steps:
       - uses: actions/checkout@v3
       - name: Set up JDK 17
@@ -22,7 +22,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-semgrep:
+  semgrep:
     name: SAST [Semgrep Scan]
     needs: build
     runs-on: ubuntu-latest
@@ -38,7 +38,7 @@ semgrep:
         if: always()
 
   oast:
-    name: SCA [scan with Safety]
+    name: SCA [Scan with Safety]
     needs: build
     runs-on: ubuntu-20.04
     steps:
@@ -52,7 +52,7 @@ semgrep:
           path: oast-results.json
         if: always()
 
-bundler:
+  bundler:
     name: SCA [Bundler Audit]
     needs: build
     runs-on: ubuntu-20.04
@@ -66,7 +66,7 @@ bundler:
           path: bundle-audit-output.json
         if: always()
 
-zap_scan:
+  zap_scan:
     name: DAST [OWASP ZAP]
     needs: build
     permissions: write-all
@@ -88,14 +88,14 @@ zap_scan:
             zap_report.html
             zap_report.json
 
-IAC:
-    name: IAC 
+  IAC:
+    name: IAC [Terraform Security Scan]
+    needs: build
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Terraform security scan
+        uses: actions/checkout@v3
+      - name: Terraform Security Scan
         uses: aquasecurity/tfsec-action@v1.0.0
         with:
           soft_fail: true
