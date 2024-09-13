@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    name: Build and run unit tests with SAST scan
+    name: Build and run unit tests
     steps:
     - uses: actions/checkout@v3
     - name: Set up JDK 17
@@ -18,10 +18,9 @@ jobs:
         distribution: 'adopt'
         cache: maven
     - name: Build with Maven
-      run: mvn -B verify sonar:sonar -Dsonar.projectKey=sast-javaproject_another-project -Dsonar.organization=sast-javaproject -Dsonar.host.url=https://sonarcloud.io -Dsonar.token=$SONAR_TOKEN
+      run: mvn -B verify
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   semgrep:
     name: Run Semgrep scan
@@ -38,14 +37,33 @@ jobs:
       continue-on-error: true
       if: always()
 
-  security:
-    name: Run SCA scan
-    runs-on: ubuntu-latest
+  oast:
+    name: Run SCA scan with Safety
+    runs-on: ubuntu-20.04
     needs: build
     steps:
     - uses: actions/checkout@v3
-    - name: Run Snyk to check for vulnerabilities
-      uses: snyk/actions/maven@v2
+    - name: Run Safety
+      run: docker run --rm -v $(pwd):/src hysnsec/safety check -r requirements.txt --json > oast-results.json
       continue-on-error: true
-      env:
-        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+    - uses: actions/upload-artifact@v3
+      with:
+        name: Safety
+        path: oast-results.json
+      if: always()
+
+  zap_scan:
+    name: Run DAST scan with ZAP
+    runs-on: ubuntu-latest
+    needs: oast
+    permissions:
+      write-all: true  # Ensure you have necessary permissions
+    steps:
+    - uses: actions/checkout@v3
+    - name: ZAP Scan
+      uses: zaproxy/action-baseline@v0.10.0
+      with:
+        docker_name: 'owasp/zap2docker-stable'
+        target: 'http://testphp.vulnweb.com/'
+        rules_file_name: '.zap/rules.tsv'
+        cmd_options: '-a'
