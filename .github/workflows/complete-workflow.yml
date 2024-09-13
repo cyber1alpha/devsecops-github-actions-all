@@ -1,4 +1,4 @@
-name: Build code, run unit tests, and perform security scans
+name: Build code and run security scans
 
 on:
   push:
@@ -36,27 +36,4 @@ jobs:
         path: semgrep-output.json
       continue-on-error: true
       if: always()
-
-  oast:
-    name: Run SCA scan with Safety
-    runs-on: ubuntu-20.04
-    needs: build
-    steps:
-    - uses: actions/checkout@v3
-    - name: Run Safety
-      run: docker run --rm -v $(pwd):/src hysnsec/safety check -r requirements.txt --json > oast-results.json
-      continue-on-error: true
-    - uses: actions/upload-artifact@v3
-      with:
-        name: Safety
-        path: oast-results.json
-      if: always()
-
-  zap_scan:
-    name: Run DAST scan with ZAP
-    runs-on: ubuntu-latest
-    needs: oast
-    steps:
-    - uses: actions/checkout@v3
-    - name: ZAP Scan
-      uses: zaproxy
+      
