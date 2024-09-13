@@ -10,83 +10,79 @@ jobs:
     runs-on: ubuntu-latest
     name: Build and run unit tests
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up JDK 17
-      uses: actions/setup-java@v3
-      with:
-        java-version: '17'
-        distribution: 'adopt'
-        cache: maven
-    - name: Build with Maven
-      run: mvn -B verify
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v3
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'adopt'
+          cache: maven
+      - name: Build with Maven
+        run: mvn -B verify
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   semgrep:
     name: Run Semgrep scan
     needs: build
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - name: Run Semgrep
-      run: docker run --rm -v "${PWD}:/src" returntocorp/semgrep semgrep --config auto --output semgrep-output.json --json
-    - uses: actions/upload-artifact@v3
-      with:
-        name: semgrep
-        path: semgrep-output.json
-      continue-on-error: true
-      if: always()
+      - uses: actions/checkout@v3
+      - name: Run Semgrep
+        run: docker run --rm -v "${PWD}:/src" returntocorp/semgrep semgrep --config auto --output semgrep-output.json --json
+      - uses: actions/upload-artifact@v3
+        with:
+          name: semgrep
+          path: semgrep-output.json
+        continue-on-error: true
+        if: always()
 
   oast:
     name: Run SCA scan with Safety
-    runs-on: ubuntu-20.04
     needs: build
-    steps:
-    - uses: actions/checkout@v3
-    - name: Run Safety
-      run: docker run --rm -v $(pwd):/src hysnsec/safety check -r requirements.txt --json > oast-results.json
-      continue-on-error: true
-    - uses: actions/upload-artifact@v3
-      with:
-        name: Safety
-        path: oast-results.json
-      if: always()
-
-  bundler-audit:
     runs-on: ubuntu-20.04
-    needs: build
     steps:
       - uses: actions/checkout@v3
+      - name: Run Safety
+        run: docker run --rm -v $(pwd):/src hysnsec/safety check -r requirements.txt --json > oast-results.json
+        continue-on-error: true
+      - uses: actions/upload-artifact@v3
+        with:
+          name: Safety
+          path: oast-results.json
+        if: always()
 
+  bundler-audit:
+    name: Run Bundler Audit
+    needs: build
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
       - run: docker run --rm -v $(pwd):/src -w /src hysnsec/bundle-audit check --format json --output bundle-audit-output.json
-        continue-on-error: true  # allow the build to fail, similar to "allow_failure: true" in GitLab
-
-      - uses: actions/upload-artifact@v3  # Updated to v3
+        continue-on-error: true
+      - uses: actions/upload-artifact@v3
         with:
           name: bundler-audit
           path: bundle-audit-output.json
         if: always()
 
-zap_scan:
-  permissions: write-all
-  runs-on: ubuntu-latest
-  name: Run DAST scan on the web application
-  steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-
-    - name: ZAP Scan
-      uses: zaproxy/action-baseline@v0.10.0
-      with:
-        docker_name: 'owasp/zap2docker-weekly'
-        target: 'http://testphp.vulnweb.com/'  # Replace with your target URL
-        cmd_options: '-a'
-
-    - name: Upload ZAP Reports
-      uses: actions/upload-artifact@v3
-      with:
-        name: ZAP Reports
-        path: |
-          zap_report.html
-          zap_report.json
-
+  zap_scan:
+    name: Run DAST scan on the web application
+    permissions: write-all
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: ZAP Scan
+        uses: zaproxy/action-baseline@v0.10.0
+        with:
+          docker_name: 'owasp/zap2docker-weekly'
+          target: 'http://testphp.vulnweb.com/'  # Replace with your target URL
+          cmd_options: '-a'
+      - name: Upload ZAP Reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: ZAP Reports
+          path: |
+            zap_report.html
+            zap_report.json
