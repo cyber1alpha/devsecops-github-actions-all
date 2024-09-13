@@ -36,4 +36,3 @@ jobs:
         path: semgrep-output.json
       continue-on-error: true
       if: always()
-      
