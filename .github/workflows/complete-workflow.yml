@@ -3,7 +3,7 @@ name: Build code, run unit tests, and perform security scans
 on:
   push:
     branches:
-      - main  # Specify the branches you want this workflow to run on
+      - master  # Specify the branches you want this workflow to run on
 
 jobs:
   build:
