@@ -36,18 +36,18 @@ jobs:
         path: semgrep-output.json
       continue-on-error: true
       if: always()
-      
+
   oast:
+    name: Run SCA scan with Safety
     runs-on: ubuntu-20.04
-    needs: test
+    needs: build
     steps:
-      - uses: actions/checkout@v2
-
-      - run: docker run --rm -v $(pwd):/src hysnsec/safety check -r requirements.txt --json > oast-results.json
-        continue-on-error: true             # allow the build to fail, similar to "allow_failure: true" in GitLab
-
-      - uses: actions/upload-artifact@v2
-        with:
-          name: Safety
-          path: oast-results.json
-        if: always() 
+    - uses: actions/checkout@v3
+    - name: Run Safety
+      run: docker run --rm -v $(pwd):/src hysnsec/safety check -r requirements.txt --json > oast-results.json
+      continue-on-error: true
+    - uses: actions/upload-artifact@v3
+      with:
+        name: Safety
+        path: oast-results.json
+      if: always()
