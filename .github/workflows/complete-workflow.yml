@@ -51,3 +51,18 @@ jobs:
         name: Safety
         path: oast-results.json
       if: always()
+
+  bundler-audit:
+    runs-on: ubuntu-20.04
+    needs: test
+    steps:
+      - uses: actions/checkout@v2
+
+      - run: docker run --rm -v $(pwd):/src -w /src hysnsec/bundle-audit check --format json --output bundle-audit-output.json
+        continue-on-error: true             # allow the build to fail, similar to "allow_failure: true" in GitLab
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: bundler-audit
+          path: bundle-audit-output.json
+        if: always() 
