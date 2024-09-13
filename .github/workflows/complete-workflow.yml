@@ -3,7 +3,7 @@ name: Build code, run unit tests, and perform security scans
 on:
   push:
     branches:
-      - master  # Specify the branches you want this workflow to run on
+      - main  # Specify the branches you want this workflow to run on
 
 jobs:
   build:
@@ -56,14 +56,7 @@ jobs:
     name: Run DAST scan with ZAP
     runs-on: ubuntu-latest
     needs: oast
-    permissions:
-      write-all: true  # Ensure you have necessary permissions
     steps:
     - uses: actions/checkout@v3
     - name: ZAP Scan
-      uses: zaproxy/action-baseline@v0.10.0
-      with:
-        docker_name: 'owasp/zap2docker-stable'
-        target: 'http://testphp.vulnweb.com/'
-        rules_file_name: '.zap/rules.tsv'
-        cmd_options: '-a'
+      uses: zaproxy
