@@ -89,7 +89,7 @@ jobs:
             zap_report.json
 
   IAC:
-    needs: zap_scan
+    needs: bundler
     runs-on: ubuntu-20.04
     name: IAC [Terraform Security Scan]
     steps:
