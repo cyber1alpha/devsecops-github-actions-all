@@ -56,7 +56,7 @@ jobs:
     runs-on: ubuntu-20.04
     needs: build
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - run: docker run --rm -v $(pwd):/src -w /src hysnsec/bundle-audit check --format json --output bundle-audit-output.json
         continue-on-error: true             # allow the build to fail, similar to "allow_failure: true" in GitLab
